@@ -17,22 +17,24 @@ Carné: 2019474
 
 #define Pin_LED 3
 #define Radar 4
-#define Red 5
-#define Blue 6
-#define Green 7
-#define Buzzer 8
-#define Pin_puerta 9
-#define Pin_Servo 10
+#define Red 8
+#define Blue 9
+#define Green 10
+#define Buzzer 14
+#define Pin_puerta 6
+#define Pin_Servo 15
 #define Pin_rele1 11
 #define Pin_rele2 12
-#define Pin_Foco1 A0
-#define Pin_Foco2 A1
-
+#define Pin_Foco1 7
+#define Pin_Foco2 5
+#define columnas 16
+#define filas 2
+#define Direccion_lcd 0x27
 Servo servo;
 Adafruit_NeoPixel neopixel(7, Pin_LED, NEO_GRB + NEO_KHZ800);
 OneWire ourWire(2);
 DallasTemperature sensors(&ourWire);
-LiquidCrystal_I2C LCD_Javier(0x27, 16, 2);
+LiquidCrystal_I2C LCD_Javier(Direccion_lcd, columnas, filas);
 
 
 int Puerta = 0;
@@ -42,8 +44,6 @@ int Foco_2 = 0;
 void Configsalidas()
 {
     pinMode(Pin_LED, OUTPUT);
-    pinMode(Radar, INPUT);
-    pinMode(Pin_puerta, INPUT);
     pinMode(Blue, OUTPUT);
     pinMode(Green, OUTPUT);
     pinMode(Red, OUTPUT);
@@ -55,6 +55,8 @@ void Configentradas()
 {
     pinMode(Pin_Foco1, INPUT);
     pinMode(Pin_Foco2, INPUT);
+    pinMode(Radar, INPUT);
+    pinMode(Pin_puerta, INPUT);
 }
 
 void temperatura();
@@ -133,6 +135,26 @@ void setup()
 {
     Configsalidas();
     Configentradas();
+    digitalWrite(Pin_rele1, HIGH);
+    digitalWrite(Pin_rele1, HIGH);
+    servo.attach(Pin_Servo);
+    sensors.begin();  
+    LCD_Javier.init(); 
+    LCD_Javier.backlight(); 
+    LCD_Javier.createChar(0,Hielo);
+    LCD_Javier.createChar(1,Agua);
+    LCD_Javier.createChar(2,Fuego);
+    LCD_Javier.createChar(3,Humano);
+    LCD_Javier.createChar(4,f_apagado);
+    LCD_Javier.createChar(5,f_encendido);
+    LCD_Javier.setCursor(0,1);
+    LCD_Javier.print("P:cerrado");
+    LCD_Javier.setCursor(9,1);
+    LCD_Javier.print("F:");
+    LCD_Javier.write(4);
+    LCD_Javier.setCursor(13,1);
+    LCD_Javier.print("F:");
+    LCD_Javier.write(4);
 }
 
 void loop()
@@ -181,7 +203,7 @@ int obtenerTemperaturaCelsius()
 void mostrarTemperaturaLCD(int temperaturaCelsius, int temperaturaFahrenheit, int Animacion)
 {
     LCD_Javier.setCursor(0, 0);
-    LCD_Javier.print("Temperatura: ");
+    LCD_Javier.print("Temp: ");
     LCD_Javier.write(Animacion);
     LCD_Javier.setCursor(6, 0);
     LCD_Javier.print(temperaturaCelsius);
@@ -197,7 +219,7 @@ void movimiento()
     if (mov == 1)
     {
         LCD_Javier.setCursor(9, 0);
-        LCD_Javier.print("Escaner: ");
+        LCD_Javier.print("Scan: ");
         LCD_Javier.write(3);
         for (int i = 0; i < 8; i++)
         {
@@ -212,7 +234,7 @@ void movimiento()
             neopixel.show();
         }
         LCD_Javier.setCursor(9, 0);
-        LCD_Javier.print("Escanear: ");
+        LCD_Javier.print("Scan: ");
         digitalWrite(Buzzer, LOW);
         delay(250);
     }
@@ -224,7 +246,7 @@ void movimiento()
             neopixel.show();
         }
         LCD_Javier.setCursor(9, 0);
-        LCD_Javier.print("Escanear: ");
+        LCD_Javier.print("Scan: ");
     }
 }
 void controlPuerta()
@@ -241,7 +263,7 @@ void controlPuerta()
     {
         servo.write(90);
         LCD_Javier.setCursor(0, 1);
-        LCD_Javier.print("P: Ocupado ");
+        LCD_Javier.print("P: Cerrado ");
         delay(500);
         Puerta = 0;
     }
